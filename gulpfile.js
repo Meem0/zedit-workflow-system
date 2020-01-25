@@ -1,32 +1,37 @@
-const fs = require('fs'),
-      gulp = require('gulp'),
-      clean = require('gulp-clean'),
-      include = require('gulp-include'),
-      rename = require('gulp-rename'),
-      zip = require('gulp-zip');
+const fs = require('fs');
+const del = require('del');
+const gulp = require('gulp');
+const include = require('gulp-include');
+const rename = require('gulp-rename');
+const zip = require('gulp-zip');
+const merge = require('merge-stream');
 
-gulp.task('clean', function() {
-    return gulp.src('dist', {read: false})
-        .pipe(clean());
-});
+function clean() {
+    return del('dist');
+}
 
-gulp.task('build', ['clean'], function() {
-    gulp.src('index.js')
+function build() {
+	let scripts = gulp.src('index.js')
         .pipe(include())
         .on('error', console.log)
         .pipe(gulp.dest('dist'));
 
-    gulp.src('partials/*.html')
+    let partials = gulp.src('partials/*.html')
         .pipe(gulp.dest('dist/partials'));
 
-    gulp.src('docs/*.html')
+    let resources = gulp.src('resources/**/*')
+        .pipe(gulp.dest('dist/resources'));
+
+    let docs = gulp.src('docs/*.html')
         .pipe(gulp.dest('dist/docs'));
 
-    gulp.src('module.json')
+    let moduleJson = gulp.src('module.json')
         .pipe(gulp.dest('dist'));
-});
+    
+    return merge(scripts, partials, resources, docs, moduleJson);
+}
 
-gulp.task('release', function() {
+function release() {
     let moduleInfo = JSON.parse(fs.readFileSync('module.json')),
         moduleId = moduleInfo.id,
         moduleVersion = moduleInfo.version,
@@ -34,10 +39,25 @@ gulp.task('release', function() {
 
     console.log(`Packaging ${zipFileName}`);
 
-    gulp.src('dist/**/*', { base: 'dist/'})
+    return gulp.src('dist/**/*', { base: 'dist/'})
         .pipe(rename((path) => path.dirname = `${moduleId}/${path.dirname}`))
         .pipe(zip(zipFileName))
         .pipe(gulp.dest('.'));
-});
+}
 
-gulp.task('default', ['build']);
+function cleanRemote() {
+    return del('../zedit/modules/workflowSystem', { force: true });
+}
+
+function copyRemote() {
+    return gulp.src('dist/**/*', { base: 'dist/' })
+        .pipe(gulp.dest('../zedit/modules/workflowSystem'));
+}
+
+exports.release = release;
+exports.build = gulp.series(clean, build);
+exports.default = gulp.series(
+    gulp.parallel(clean, cleanRemote),
+    build,
+    copyRemote
+);

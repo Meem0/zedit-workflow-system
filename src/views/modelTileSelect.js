@@ -1,19 +1,17 @@
 ngapp.run(function(workflowService) {
     let modelTileSelectController = function($scope) {
-        $scope.tiles = $scope.model.tiles();
-        $scope.$parent.nextEnabled = false;
+        $scope.tiles = $scope.stage.tiles();
 
         $scope.selectTile = function(tile) {
             tile.selected = true;
-            let workflowKey = $scope.workflow.model,
-                modelKey = $scope.stage.model;
-            $scope.model[workflowKey][modelKey] = tile.value || tile.label;
-            $scope.$parent.nextEnabled = true;
+            $scope.model.weaponType = tile.label;
+            $scope.validateStage();
         };
     };
 
     workflowService.addView('modelTileSelect', {
         templateUrl: `${moduleUrl}/partials/modelTileSelect.html`,
-        controller: modelTileSelectController
-    })
+        controller: modelTileSelectController,
+        validate: ({weaponType}) => weaponType && typeof(weaponType) === 'string'
+    });
 });

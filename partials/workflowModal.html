@@ -2,7 +2,7 @@
     <div class="modal huge-modal">
         <div class="close-modal" ng-click="cancel()"></div>
 
-        <div class="modal-content" ng-if="!module">
+        <div class="modal-content" ng-if="!moduleName">
             <h2>Select Module</h2>
 
             <div class="tiles">
@@ -13,7 +13,7 @@
             </div>
         </div>
 
-        <div class="modal-content" ng-if="module && !workflow">
+        <div class="modal-content" ng-if="moduleName && !workflowName">
             <h2>Select Workflow</h2>
 
             <div class="tiles">
@@ -24,20 +24,20 @@
             </div>
         </div>
 
-        <div class="modal-content" ng-if="workflow">
+        <div class="modal-content" ng-if="workflowName">
             <div class="workflow-stages">
-                <h2>{{::module}} - {{::workflow}}</h2>
-                <div ng-repeat="stage in stages" ng-click="selectStage($index)" ng-class="{'unavailable' : !stage.available}">
+                <h2>{{::moduleName}} - {{::workflowName}}</h2>
+                <div ng-repeat="stage in stages" ng-click="selectStage($index)" ng-class="{'unavailable' : !stage.available, 'invalid': stage.valid === false}">
                     {{::stage.name}}
                 </div>
             </div>
             <div class="workflow-content">
-                <div ng-include="stage.view.templateUrl" dyn-controller="stage.view.controller"></div>
+                <div ng-include="view.templateUrl" dyn-controller="view.controller"></div>
                 <div class="stage-buttons">
                     <button ng-show="showPrevious" class="prev-button" ng-click="previousStage()">
                         Previous
                     </button>
-                    <button ng-show="showNext" class="next-button" ng-click="nextStage()" ng-disabled="nextEnabled">
+                    <button ng-show="showNext" class="next-button" ng-click="nextStage()" ng-disabled="!stage.valid">
                         Next
                     </button>
                     <button ng-show="showFinish" class="finish-button" ng-click="finish()">

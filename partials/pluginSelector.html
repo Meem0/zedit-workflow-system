@@ -1,3 +1,10 @@
 <h2>{{::stage.name}}</h2>
 
-<plugin-select allow-new="true" model="model.plugin"></plugin-select>
+<section>
+    <list-view items="plugins">
+        <input type="radio" ng-model="selection.plugin" ng-value="$parent.item" ng-change="selectPlugin()"/>
+        <span ng-show="$parent.item.loadOrder !== undefined">[{{$parent.item.loadOrder | hex:2 }}]</span>
+        <span ng-show="!$parent.item.isAddFile || selection.plugin !== $parent.item">{{$parent.item.filename}}</span>
+        <input ng-show="$parent.item.isAddFile && selection.plugin === $parent.item" type="text" ng-model="$parent.item.filename" maxlength=64 ng-change="selectPlugin()"/>
+    </list-view>
+</section>

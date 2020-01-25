@@ -1,2 +1,2 @@
 /* global ngapp, xelib */
-//=require src/*.js
+//=require src/**/*.js

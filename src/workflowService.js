@@ -3,14 +3,14 @@ ngapp.service('workflowService', function() {
         workflows = {},
         views = {};
 
-    this.addModule = function(name, module) {
-        modules[name] = module;
+    this.addModule = function({name, ...module}) {
+        modules[name] = {name: name, ...module};
     };
 
     this.getModules = () => modules;
 
-    this.addWorkflow = function(name, workflow) {
-        workflows[name] = workflow;
+    this.addWorkflow = function({name, ...workflow}) {
+        workflows[name] = {name: name, ...workflow};
     };
 
     this.getWorkflow = name => workflows[name];
