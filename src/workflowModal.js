@@ -20,6 +20,7 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
 
     $scope.selectWorkflow = function(workflow) {
         $scope.workflowName = workflow.name;
+        $scope.workflow = workflow;
         $scope.model = {};
         $scope.stages = buildStages(workflow);
         $scope.stages[0].available = true;
@@ -43,7 +44,9 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
     };
 
     $scope.finish = function() {
-        $scope.workflow.finish();
+        $scope.workflow.finish($scope.model);
+        $scope.$emit('closeModal');
+        $scope.$root.$broadcast('reloadGUI');
     };
 
     $scope.validateStage = function(stage = $scope.stage) {
