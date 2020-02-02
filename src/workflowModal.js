@@ -12,6 +12,7 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
 
     // scope functions
     $scope.selectModule = function(module) {
+        $scope.module = module;
         $scope.moduleName = module.name;
         $scope.workflows = module.workflows.map(workflowName => {
             return workflowService.getWorkflow(workflowName);

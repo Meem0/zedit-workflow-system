@@ -26,7 +26,7 @@
 
         <div class="modal-content" ng-if="workflowName">
             <div class="workflow-stages">
-                <h2>{{::moduleName}} - {{::workflowName}}</h2>
+                <h2>{{::module.label}} - {{::workflow.label}}</h2>
                 <div ng-repeat="stage in stages" ng-click="selectStage($index)" ng-class="{'unavailable' : !stage.available, 'invalid': stage.valid === false}">
                     {{::stage.name}}
                 </div>
