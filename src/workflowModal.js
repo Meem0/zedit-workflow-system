@@ -70,7 +70,6 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
 
         scope.stage = stage;
         scope.stage.available = true;
-        scope.stageStack.push(stageName);
         
         const nextStageName = getNextStage(scope);
         scope.showPrevious = scope.hasPreviousStage();
@@ -108,7 +107,8 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
     $scope.jumpToStage = function(stageName) {
         const stage = getStageByName($scope.stages, stageName);
         if (stage && stage.available) {
-            $scope.setStage(stageName);
+            $scope.stageStack.push(stageName);
+            setStage($scope, stageName);
         }
     };
     
@@ -121,7 +121,7 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
             return;
         }
         $scope.stageStack.pop();
-        $scope.setStage($scope.stageStack[$scope.stageStack.length - 1]);
+        setStage($scope, $scope.stageStack[$scope.stageStack.length - 1]);
     };
 
     $scope.nextStage = function() {
@@ -130,7 +130,8 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
             $scope.finish();
         }
         else {
-            $scope.setStage(nextStageName);
+            $scope.stageStack.push(nextStageName);
+            setStage($scope, nextStageName);
         }
     };
 

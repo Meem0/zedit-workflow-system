@@ -1,7 +1,7 @@
 <h2>{{::stage.name}}</h2>
 
 <div class="tiles">
-    <div class="tile" ng-repeat="tile in tiles" ng-click="selectTile(tile)">
+    <div class="tile" ng-class="{'selected': tile.selected}" ng-repeat="tile in tiles" ng-click="selectTile(tile)">
         <img ng-src="{{::tile.image}}">
         <span>{{::tile.label}}</span>
     </div>
