@@ -65,7 +65,7 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
         }
         
         if (scope.stage && typeof(scope.stage.finish) === 'function') {
-            scope.stage.finish(scope.model);
+            scope.stage.finish(scope.model, scope);
         }
 
         scope.stage = stage;
@@ -99,7 +99,7 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
         $scope.model = {};
         $scope.stages = buildStages(workflow);
         if (typeof($scope.workflow.start) === 'function') {
-            $scope.workflow.start($scope.model);
+            $scope.workflow.start($scope.model, $scope);
         }
         $scope.nextStage();
     };
@@ -136,7 +136,7 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
     };
 
     $scope.finish = function() {
-        $scope.workflow.finish($scope.model);
+        $scope.workflow.finish($scope.model, $scope);
         $scope.$emit('closeModal');
         $scope.$root.$broadcast('reloadGUI');
     };
