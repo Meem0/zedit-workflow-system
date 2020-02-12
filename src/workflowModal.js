@@ -5,10 +5,85 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
             available: false
         }));
     };
+    
+    let getStageByName = function(stages, stageName) {
+        return (Array.isArray(stages) && typeof(stageName) === 'string'
+            ? stages.find(({name}) => name === stageName)
+            : undefined);
+    };
+    
+    let getStageIndexByName = function(stages, stageName) {
+        return (Array.isArray(stages) && typeof(stageName) === 'string'
+            ? stages.findIndex(({name}) => name === stageName)
+            : -1);
+    };
+
+    let loadView = function(scope, viewName) {
+        if (typeof(viewName) !== 'string') {
+            return;
+        }
+        let view = workflowService.getView(viewName);
+        scope.view = {
+            name: viewName,
+            ...view
+        };
+    };
+    
+    let getNextStage = function(scope) {
+        if (!scope) {
+            return '';
+        }
+        
+        let currentStageName = scope.stage ? scope.stage.name : '';
+        let nextStageName;
+        if (scope.workflow && typeof(scope.workflow.getNextStage) === 'function') {
+            nextStageName = scope.workflow.getNextStage(currentStageName, scope.model);
+        }
+        if (nextStageName === undefined && scope.stages && scope.stages.length > 0) {
+            nextStageName = '';
+            if (currentStageName) {
+                const currentStageIndex = getStageIndexByName(scope.stages, currentStageName);
+                if (currentStageIndex + 1 < scope.stages.length) {
+                    nextStageName = scope.stages[currentStageIndex + 1].name;
+                }
+            }
+            else {
+                nextStageName = scope.stages[0].name;
+            }
+        }
+        return nextStageName;
+    };
+    
+    let setStage = function(scope, stageName) {
+        if (!scope) {
+            return;
+        }
+        
+        const stage = getStageByName(scope.stages, stageName);
+        if (!stage) {
+            return;
+        }
+        
+        if (scope.stage && typeof(scope.stage.finish) === 'function') {
+            scope.stage.finish(scope.model);
+        }
+
+        scope.stage = stage;
+        scope.stage.available = true;
+        scope.stageStack.push(stageName);
+        
+        const nextStageName = getNextStage(scope);
+        scope.showPrevious = scope.hasPreviousStage();
+        scope.showNext = !!nextStageName;
+        scope.showFinish = !nextStageName;
+        loadView(scope, scope.stage.view);
+        scope.validateStage();
+    };
 
     $scope.modules = workflowService.getModules();
     $scope.moduleName = '';
     $scope.workflowName = '';
+    $scope.stageStack = [];
 
     // scope functions
     $scope.selectModule = function(module) {
@@ -24,24 +99,39 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
         $scope.workflow = workflow;
         $scope.model = {};
         $scope.stages = buildStages(workflow);
-        $scope.stages[0].available = true;
-        $scope.stageIndex = 0;
+        if (typeof($scope.workflow.start) === 'function') {
+            $scope.workflow.start($scope.model);
+        }
+        $scope.nextStage();
     };
 
-    $scope.selectStage = function(index) {
-        if (!$scope.stages[index].available ||
-            $scope.stageIndex === index) return;
-        $scope.stageIndex = index;
+    $scope.jumpToStage = function(stageName) {
+        const stage = getStageByName($scope.stages, stageName);
+        if (stage && stage.available) {
+            $scope.setStage(stageName);
+        }
+    };
+    
+    $scope.hasPreviousStage = function() {
+        return $scope.stageStack.length > 1;
     };
 
     $scope.previousStage = function() {
-        if ($scope.stageIndex === 0) return;
-        $scope.stageIndex = $scope.stageIndex - 1;
+        if (!$scope.hasPreviousStage()) {
+            return;
+        }
+        $scope.stageStack.pop();
+        $scope.setStage($scope.stageStack[$scope.stageStack.length - 1]);
     };
 
     $scope.nextStage = function() {
-        if ($scope.stageIndex >= $scope.stages.length) return;
-        $scope.stageIndex = $scope.stageIndex + 1;
+        const nextStageName = getNextStage($scope);
+        if (!nextStageName) {
+            $scope.finish();
+        }
+        else {
+            $scope.setStage(nextStageName);
+        }
     };
 
     $scope.finish = function() {
@@ -69,16 +159,9 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
     $scope.validateWorkflow = function() {
         let workflowValid = true;
         $scope.stages.forEach(stage => {
-            workflowValid &= validateStage(stage);
+            workflowValid &= $scope.validateStage(stage);
         });
         return workflowValid;
-    };
-
-    $scope.loadView = function() {
-        if (!$scope.stage || typeof $scope.stage.view !== 'string') return;
-        let view = workflowService.getView($scope.stage.view);
-        $scope.view = {name: $scope.stage.view, ...view};
-        $scope.validateStage();
     };
 
     $scope.$on('nextStage', $scope.nextStage);
@@ -87,19 +170,5 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
         $scope.model[workflow.model] = {};
         $scope.stages = buildStages(workflow);
         $scope.nextStage();
-    });
-
-    $scope.$watch('stageIndex', () => {
-        if (!$scope.stages) {
-            return;
-        }
-
-        let maxStageIndex = $scope.stages.length - 1;
-        $scope.stage = $scope.stages[$scope.stageIndex];
-        $scope.stage.available = true;
-        $scope.showPrevious = $scope.stageIndex > 0;
-        $scope.showNext = $scope.stageIndex < maxStageIndex;
-        $scope.showFinish = $scope.stageIndex === maxStageIndex;
-        $scope.loadView();
     });
 });
