@@ -53,12 +53,15 @@ ngapp.run(function(workflowService) {
     workflowService.addView('pluginSelector', {
         templateUrl: `${moduleUrl}/partials/pluginSelector.html`,
         controller: pluginSelectorController,
-        validate: function({plugin}) {
+        process: function(input, model) {
+            let plugin = model.plugin;
             if (!plugin || typeof(plugin) !== 'string') {
-                return false;
+                return;
             }
     
-            return xelib.WithHandle(xelib.GetElement(0, plugin), fileId => !fileId || xelib.GetIsEditable(fileId));
+            return xelib.WithHandle(xelib.GetElement(0, plugin), fileId => {
+                return fileId && xelib.GetIsEditable(fileId) ? { plugin } : undefined;
+            });
         }
     });
 });
