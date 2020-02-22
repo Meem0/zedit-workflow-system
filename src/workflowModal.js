@@ -78,6 +78,36 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
         loadView(scope, scope.stage.view);
         scope.validateStage();
     };
+    
+    let processWorkflow = function(workflow, workflowInput, stageModels) {
+        let workflowModel = workflowInput;
+        let stage = workflow.stages[0];
+        while (stage) {
+            const inputKeys = stage.requireInput || [];
+            const input = inputKeys.reduce((input, key) => {
+                input[key] = workflowModel[key];
+                return input;
+            }, {});
+            
+            if (stage.validateInput && !stage.validateInput(input)) {
+                stage.available = false;
+                // make remaining stages not available
+                break;
+            }
+            
+            const output = stage.process(input, stageModels[stage.name]);
+            
+            if (!output) {
+                // make remaining stages not available
+                break;
+            }
+            
+            Object.assign(workflowModel, output);
+            stage = getNextStage(workflow, stage, workflowModel);
+        }
+        
+        // build stage roadmap
+    };
 
     $scope.modules = workflowService.getModules();
     $scope.moduleName = '';
@@ -139,30 +169,6 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
         $scope.workflow.finish($scope.model, $scope);
         $scope.$emit('closeModal');
         $scope.$root.$broadcast('reloadGUI');
-    };
-
-    $scope.validateStage = function(stage = $scope.stage) {
-        if (!stage.available) {
-            return;
-        }
-
-        let view = workflowService.getView(stage.view);
-        if (!view || typeof(view.validate) !== 'function') {
-            stage.valid = true;
-        }
-        else {
-            stage.valid = view.validate($scope.model, stage);
-        }
-
-        return stage.valid;
-    };
-
-    $scope.validateWorkflow = function() {
-        let workflowValid = true;
-        $scope.stages.forEach(stage => {
-            workflowValid &= $scope.validateStage(stage);
-        });
-        return workflowValid;
     };
 
     $scope.$on('nextStage', $scope.nextStage);
