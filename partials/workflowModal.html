@@ -1,3 +1,18 @@
+<style>
+    .workflow-stages .current {
+        font-weight: bold;
+    }
+    .workflow-stages .complete {
+        color: green
+    }
+    .workflow-stages .incomplete {
+        color: yellow
+    }
+    .workflow-stages .unavailable {
+        color: gray
+    }
+</style>
+
 <div class="modal-container" unfocus-modal>
     <div class="modal huge-modal">
         <div class="close-modal" ng-click="cancel()"></div>
@@ -27,20 +42,27 @@
         <div class="modal-content" ng-if="workflowName">
             <div class="workflow-stages">
                 <h2>{{::module.label}} - {{::workflow.label}}</h2>
-                <div ng-repeat="stage in stages" ng-click="jumpToStage(stage.name)" ng-class="{'unavailable' : !stage.available, 'invalid': stage.valid === false}">
+                <div ng-repeat="stage in stageRoadmap"
+                    ng-click="setStage(stage.name)"
+                    ng-class="{
+                        'current': stage.name === currentStageName,
+                        'complete': stage.isComplete(),
+                        'incomplete': stage.isIncomplete(),
+                        'unavailable': !stage.isAvailable()
+                    }">
                     {{::stage.name}}
                 </div>
             </div>
             <div class="workflow-content">
                 <div ng-include="view.templateUrl" dyn-controller="view.controller"></div>
                 <div class="stage-buttons">
-                    <button ng-show="showPrevious" class="prev-button" ng-click="previousStage()">
+                    <button class="prev-button" ng-click="previousStage()" ng-disabled="!canNavigatePrevious">
                         Previous
                     </button>
-                    <button ng-show="showNext" class="next-button" ng-click="nextStage()" ng-disabled="!stage.valid">
+                    <button class="next-button" ng-click="nextStage()" ng-disabled="!canNavigateNext">
                         Next
                     </button>
-                    <button ng-show="showFinish" class="finish-button" ng-click="finish()">
+                    <button ng-show="canFinishWorkflow" class="finish-button" ng-click="finish()">
                         Finish
                     </button>
                 </div>
