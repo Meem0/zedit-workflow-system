@@ -96,14 +96,14 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
                 continue;
             }
 
-            if (stageName === currentStageName) {
-                angular.copy(workflowModel, currentStageInput);
-            }
-
             let stageRoadmapEntry = new StageRoadmapEntry(stageName);
             stageRoadmap.push(stageRoadmapEntry);
 
             const stageInput = getInputForStage(stage, workflowModel);
+
+            if (stageName === currentStageName) {
+                angular.copy(stageInput, currentStageInput);
+            }
 
             let stageModel = stageModels[stageName];
             if (!stageModel) {
