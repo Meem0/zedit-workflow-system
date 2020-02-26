@@ -45,23 +45,20 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
     };
 
     let getNextStage = function(workflow, currentStageName, workflowModel) {
-        let nextStageName;
-        if (workflow) {
-            if (workflow.getNextStage) {
-                nextStageName = workflow.getNextStage(currentStageName, workflowModel);
+        if (workflow && workflow.stages) {
+            let nextStageIndex = 0;
+            if (currentStageName) {
+                const currentStageIndex = workflow.stages.findIndex(({name}) => name === currentStageName);
+                nextStageIndex = currentStageIndex + 1;
             }
-            if (nextStageName === undefined && workflow.stages) {
-                let nextStageIndex = 0;
-                if (currentStageName && workflow.stages) {
-                    const currentStageIndex = workflow.stages.findIndex(({name}) => name === currentStageName);
-                    nextStageIndex = currentStageIndex + 1;
-                }
-                if (nextStageIndex < workflow.stages.length) {
-                    nextStageName = workflow.stages[nextStageIndex].name;
+            for (; nextStageIndex < workflow.stages.length; ++nextStageIndex) {
+                const stage = workflow.stages[nextStageIndex];
+                if (stage && (!stage.shouldInclude || stage.shouldInclude(workflowModel)) {
+                    return stage.name;
                 }
             }
         }
-        return nextStageName || '';
+        return '';
     };
 
     let getInputForStage = function(stage, workflowModel) {
