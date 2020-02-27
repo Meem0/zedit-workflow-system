@@ -42,15 +42,24 @@
         <div class="modal-content" ng-if="workflowName">
             <div class="workflow-stages">
                 <h2>{{::module.label}} - {{::workflow.label}}</h2>
-                <div ng-repeat="stage in stageRoadmap"
-                    ng-click="setStage(stage.name)"
-                    ng-class="{
-                        'current': stage.name === currentStageName,
-                        'complete': stage.isComplete(),
-                        'incomplete': stage.isIncomplete(),
-                        'unavailable': !stage.isAvailable()
-                    }">
-                    {{::stage.name}}
+                <div ng-repeat="stageRoadmapEntry in stageRoadmap">
+                    <a ng-show="stageRoadmapEntry.stage.name !== currentStageName && stageRoadmapEntry.isAvailable()"
+                       ng-click="setStage(stageRoadmapEntry.stage)"
+                       ng-class="{
+                           'complete': stageRoadmapEntry.isComplete(),
+                           'incomplete': stageRoadmapEntry.isIncomplete()
+                        }">
+                       {{::stageRoadmapEntry.stage.name}}
+                    </a>
+                    <span ng-show="stageRoadmapEntry.stage.name === currentStageName || !stageRoadmapEntry.isAvailable()"
+                          ng-class="{
+                              'current': stageRoadmapEntry.stage.name === currentStageName,
+                              'complete': stageRoadmapEntry.isComplete(),
+                              'incomplete': stageRoadmapEntry.isIncomplete(),
+                              'unavailable': !stageRoadmapEntry.isAvailable()
+                            }">
+                       {{::stageRoadmapEntry.stage.name}}
+                    </span>
                 </div>
             </div>
             <div class="workflow-content">
