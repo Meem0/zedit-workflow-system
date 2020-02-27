@@ -1,0 +1,36 @@
+<style>
+    .stage-list .current {
+        font-weight: bold;
+    }
+    .stage-list .complete {
+        color: green
+    }
+    .stage-list .incomplete {
+        color: yellow
+    }
+    .stage-list .unavailable {
+        color: gray
+    }
+</style>
+
+<div class="stage-list">
+    <div ng-repeat="stageRoadmapEntry in stageRoadmap">
+        <a ng-show="stageRoadmapEntry.stage.name !== currentStageName && stageRoadmapEntry.isAvailable()"
+           ng-click="setStage(stageRoadmapEntry.stage)"
+           ng-class="{
+               'complete': stageRoadmapEntry.isComplete(),
+               'incomplete': stageRoadmapEntry.isIncomplete()
+            }">
+           {{::stageRoadmapEntry.stage.name}}
+        </a>
+        <span ng-show="stageRoadmapEntry.stage.name === currentStageName || !stageRoadmapEntry.isAvailable()"
+              ng-class="{
+                  'current': stageRoadmapEntry.stage.name === currentStageName,
+                  'complete': stageRoadmapEntry.isComplete(),
+                  'incomplete': stageRoadmapEntry.isIncomplete(),
+                  'unavailable': !stageRoadmapEntry.isAvailable()
+                }">
+           {{::stageRoadmapEntry.stage.name}}
+        </span>
+    </div>
+</div>

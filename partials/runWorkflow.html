@@ -1,0 +1,30 @@
+<style>
+    .workflow-container {
+        display: flex
+    }
+    stage-nav.workflow-container {
+        width: 250px
+    }
+    .workflow-container .workflow-content {
+        flex: 1
+    }
+</style>
+
+<div class="workflow-container">
+    <stage-nav stage-roadmap="stageRoadmap" set-stage="setStage" current-stage-name="currentStageName"></stage-nav>
+    <div class="workflow-content">
+        <h2>{{::workflow.label}}</h2>
+        <div ng-include="view.templateUrl" dyn-controller="view.controller"></div>
+        <div class="stage-buttons">
+            <button class="prev-button" ng-click="previousStage()" ng-disabled="!canNavigatePrevious">
+                Previous
+            </button>
+            <button class="next-button" ng-click="nextStage()" ng-disabled="!canNavigateNext">
+                Next
+            </button>
+            <button ng-show="canFinishWorkflow" class="finish-button" ng-click="finish()">
+                Finish
+            </button>
+        </div>
+    </div>
+</div>
