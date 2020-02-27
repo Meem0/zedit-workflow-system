@@ -43,22 +43,31 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
     let isRoadmapComplete = function(stageRoadmap) {
         return stageRoadmap.every(stage => stage.isComplete());
     };
-
-    let getNextStage = function(workflow, currentStageName, workflowModel) {
-        if (workflow && workflow.stages) {
-            let nextStageIndex = 0;
-            if (currentStageName) {
-                const currentStageIndex = workflow.stages.findIndex(({name}) => name === currentStageName);
-                nextStageIndex = currentStageIndex + 1;
+    
+    let getNextStage = function(workflow, currentStageName, workflowModel, foundCurrentStage = false) {
+        let nextStage;
+        for (const stage of workflow.stages) {
+            if (!stage || (stage.shouldInclude && !stage.shouldInclude(workflowModel))) {
+                continue;
             }
-            for (; nextStageIndex < workflow.stages.length; ++nextStageIndex) {
-                const stage = workflow.stages[nextStageIndex];
-                if (stage && (!stage.shouldInclude || stage.shouldInclude(workflowModel)) {
-                    return stage.name;
+            if (stage.subflow) {
+                // recurse into subflow
+                const subflow = workflowService.getWorkflow(stage.subflow);
+                if (subflow) {
+                    ({foundCurrentStage, nextStage} = getNextStage(subflow, currentStageName, workflowModel, foundCurrentStage));
                 }
             }
+            else if (!foundCurrentStage) {
+                foundCurrentStage = currentStageName === stage.name;
+            }
+            else {
+                nextStage = stage;
+            }
+            if (nextStage) {
+                break;
+            }
         }
-        return '';
+        return {foundCurrentStage, nextStage};
     };
 
     let getInputForStage = function(stage, workflowModel) {
@@ -80,27 +89,27 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
         let currentStageInput = {};
         let stageRoadmap = [];
         while (true) {
-            stageName = getNextStage(workflow, stageName, workflowModel);
-            if (!stageName) {
+            const {nextStage: stage} = getNextStage(workflow, stageName, workflowModel);
+            if (!stage) {
                 // all stages of workflow are complete
                 break;
             }
 
-            const stage = getStage(workflow, stageName);
+            stageName = stage.name;
             const stageView = getViewFromStage(stage);
-            if (!stage || !stageView || !stageView.process) {
+            if (!stageView || !stageView.process) {
                 console.error(`Could not get valid view from stage ${stageName}`);
                 continue;
-            }
-
-            if (stageName === currentStageName) {
-                angular.copy(workflowModel, currentStageInput);
             }
 
             let stageRoadmapEntry = new StageRoadmapEntry(stageName);
             stageRoadmap.push(stageRoadmapEntry);
 
             const stageInput = getInputForStage(stage, workflowModel);
+
+            if (stageName === currentStageName) {
+                angular.copy(stageInput, currentStageInput);
+            }
 
             let stageModel = stageModels[stageName];
             if (!stageModel) {
