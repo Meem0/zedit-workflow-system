@@ -43,25 +43,31 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
     let isRoadmapComplete = function(stageRoadmap) {
         return stageRoadmap.every(stage => stage.isComplete());
     };
-
-    let getNextStage = function(workflow, currentStageName, workflowModel) {
-        let nextStageName;
-        if (workflow) {
-            if (workflow.getNextStage) {
-                nextStageName = workflow.getNextStage(currentStageName, workflowModel);
+    
+    let getNextStage = function(workflow, currentStageName, workflowModel, foundCurrentStage = false) {
+        let nextStage;
+        for (const stage of workflow.stages) {
+            if (!stage || (stage.shouldInclude && !stage.shouldInclude(workflowModel))) {
+                continue;
             }
-            if (nextStageName === undefined && workflow.stages) {
-                let nextStageIndex = 0;
-                if (currentStageName && workflow.stages) {
-                    const currentStageIndex = workflow.stages.findIndex(({name}) => name === currentStageName);
-                    nextStageIndex = currentStageIndex + 1;
+            if (stage.subflow) {
+                // recurse into subflow
+                const subflow = workflowService.getWorkflow(stage.subflow);
+                if (subflow) {
+                    ({foundCurrentStage, nextStage} = getNextStage(subflow, currentStageName, workflowModel, foundCurrentStage));
                 }
-                if (nextStageIndex < workflow.stages.length) {
-                    nextStageName = workflow.stages[nextStageIndex].name;
-                }
+            }
+            else if (!foundCurrentStage) {
+                foundCurrentStage = currentStageName === stage.name;
+            }
+            else {
+                nextStage = stage;
+            }
+            if (nextStage) {
+                break;
             }
         }
-        return nextStageName || '';
+        return {foundCurrentStage, nextStage};
     };
 
     let getInputForStage = function(stage, workflowModel) {
@@ -83,15 +89,15 @@ ngapp.controller('workflowModalController', function($scope, workflowService) {
         let currentStageInput = {};
         let stageRoadmap = [];
         while (true) {
-            stageName = getNextStage(workflow, stageName, workflowModel);
-            if (!stageName) {
+            const {nextStage: stage} = getNextStage(workflow, stageName, workflowModel);
+            if (!stage) {
                 // all stages of workflow are complete
                 break;
             }
 
-            const stage = getStage(workflow, stageName);
+            stageName = stage.name;
             const stageView = getViewFromStage(stage);
-            if (!stage || !stageView || !stageView.process) {
+            if (!stageView || !stageView.process) {
                 console.error(`Could not get valid view from stage ${stageName}`);
                 continue;
             }
