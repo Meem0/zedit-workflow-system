@@ -1,0 +1,14 @@
+.stage-list {
+    .current {
+        font-weight: bold;
+    }
+    .complete {
+        color: $positive;
+    }
+    .incomplete {
+        color: $neutral;
+    }
+    .unavailable {
+        color: $action_disabled;
+    }
+}

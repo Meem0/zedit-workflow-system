@@ -241,7 +241,6 @@ ngapp.controller('runWorkflowController', function ($scope, workflowService) {
 
     $scope.$on('nextStage', $scope.nextStage);
 
-    debugger;
     $scope.stageModels = {};
     $scope.stageRoadmap = [];
     // TODO: workflow input

@@ -1,18 +1,3 @@
-<style>
-    .stage-list .current {
-        font-weight: bold;
-    }
-    .stage-list .complete {
-        color: green
-    }
-    .stage-list .incomplete {
-        color: yellow
-    }
-    .stage-list .unavailable {
-        color: gray
-    }
-</style>
-
 <div class="stage-list">
     <div ng-repeat="stageRoadmapEntry in stageRoadmap">
         <a ng-show="stageRoadmapEntry.stage.name !== currentStageName && stageRoadmapEntry.isAvailable()"
