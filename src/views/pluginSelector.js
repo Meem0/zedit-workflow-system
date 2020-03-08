@@ -39,7 +39,6 @@ ngapp.run(function(workflowService) {
 
         $scope.selectPlugin = function() {
             $scope.model.plugin = $scope.selection.plugin.filename;
-            $scope.validateStage();
         }
 
         // by default, select the "new plugin" option
