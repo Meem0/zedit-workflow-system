@@ -59,7 +59,7 @@ ngapp.run(function(workflowService) {
             }
     
             return xelib.WithHandle(xelib.GetElement(0, plugin), fileId => {
-                return fileId && xelib.GetIsEditable(fileId) ? { plugin } : undefined;
+                return !fileId || xelib.GetIsEditable(fileId) ? { plugin } : undefined;
             });
         }
     });

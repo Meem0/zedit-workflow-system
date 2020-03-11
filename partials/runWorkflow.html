@@ -14,7 +14,14 @@
     <stage-nav stage-roadmap="stageRoadmap" set-stage="setStage" current-stage-name="currentStageName"></stage-nav>
     <div class="workflow-content">
         <h2>{{::workflow.label}}</h2>
-        <div ng-include="view.templateUrl" dyn-controller="view.controller"></div>
+        <workflow-view
+            ng-repeat="loadedView in loadedViews"
+            ng-if="loadedView.stageName === currentStageName"
+            template-url="loadedView.templateUrl"
+            controller="loadedView.controller"
+            input="stageInputs[loadedView.stageName]"
+            model="stageModels[loadedView.stageName]">
+        </workflow-view>
         <div class="stage-buttons">
             <button class="prev-button" ng-click="previousStage()" ng-disabled="!canNavigatePrevious">
                 Previous
