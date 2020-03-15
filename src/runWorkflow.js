@@ -4,7 +4,8 @@ ngapp.directive('runWorkflow', function () {
         templateUrl: `${modulePath}/partials/runWorkflow.html`,
         controller: 'runWorkflowController',
         scope: {
-            workflow: '='
+            workflow: '=',
+            selectedNodes: '<'
         }
     };
 });
