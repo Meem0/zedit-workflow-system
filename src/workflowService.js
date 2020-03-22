@@ -76,6 +76,10 @@ ngapp.service('workflowService', function() {
     };
 
     this.processWorkflow = function(workflow, workflowInput, stageModels) {
+        if (typeof(workflow) === 'string') {
+            workflow = workflows[workflow];
+        }
+
         let stageName = '';
         let workflowModel = {...workflowInput};
         let stageInputs = {};
