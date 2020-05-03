@@ -31,7 +31,7 @@ ngapp.controller('runWorkflowController', function ($scope, workflowService) {
     };
 
     let processWorkflow = function(workflow, workflowInput, stageModels, previousStageRoadmap) {
-        let {stageRoadmap, stageInputs, workflowModel} = workflowService.processWorkflow(workflow, workflowInput, stageModels);
+        let {stageRoadmap, workflowModel} = workflowService.processWorkflow(workflow, workflowInput, stageModels);
         
         // e.g. workflow has 5 stages, stage 3 is incomplete
         //  if the previousStageRoadmap had stages after 3, we want those appended to the roadmap
@@ -42,7 +42,7 @@ ngapp.controller('runWorkflowController', function ($scope, workflowService) {
             stageRoadmap = addUnavailableRoadmapEntries(stageRoadmap, previousStageRoadmap);
         }
 
-        return {stageRoadmap, stageInputs, workflowModel};
+        return {stageRoadmap, workflowModel};
     };
 
     // scope functions
@@ -79,12 +79,22 @@ ngapp.controller('runWorkflowController', function ($scope, workflowService) {
         });
     };
 
+    $scope.updateStageInput = function(stageName) {
+        if (!$scope.stageInputs) {
+            $scope.stageInputs = {};
+        }
+        const stageInput = workflowService.getInputForStage($scope.workflow, $scope.workflowInput, $scope.stageModels, stageName);
+        if (!angular.equals($scope.stageInputs[stageName], stageInput)) {
+            $scope.stageInputs[stageName] = stageInput;
+        }
+    };
+
     $scope.processWorkflow = function() {
         if (!$scope.workflow || !$scope.workflowInput || !$scope.stageModels || !$scope.stageRoadmap) {
             return;
         }
 
-        const {stageRoadmap, stageInputs, workflowModel} = processWorkflow(
+        const {stageRoadmap, workflowModel} = processWorkflow(
             $scope.workflow,
             $scope.workflowInput,
             $scope.stageModels,
@@ -92,8 +102,6 @@ ngapp.controller('runWorkflowController', function ($scope, workflowService) {
         );
         $scope.stageRoadmap = stageRoadmap;
         $scope.updateLoadedViews();
-        // TODO: stage input only needs to be updated when previous stage outputs change
-        $scope.stageInputs = stageInputs;
         $scope.workflowModel = workflowModel;
 
         $scope.updateNavigation();
@@ -113,7 +121,9 @@ ngapp.controller('runWorkflowController', function ($scope, workflowService) {
     };
 
     $scope.setStage = function(stage) {
-        $scope.currentStageName = stage ? stage.name : '';
+        const stageName = stage ? stage.name : '';
+        $scope.currentStageName = stageName;
+        $scope.updateStageInput(stageName);
         $scope.updateNavigation();
     };
 

@@ -62,7 +62,7 @@ ngapp.service('workflowService', function() {
         return {foundCurrentStage, nextStage, nextStageWorkflow};
     };
 
-    let getInputForStage = function(stage, workflowModel) {
+    let formatInputForStage = function(stage, workflowModel) {
         const stageInput = stage && stage.input ? stage.input : {};
 
         const stageView = getViewFromStage(stage);
@@ -75,18 +75,17 @@ ngapp.service('workflowService', function() {
         return Object.assign({}, stageInput, modelInput);
     };
 
-    this.processWorkflow = function(workflow, workflowInput, stageModels) {
+    this.processWorkflow = function(workflow, workflowInput, stageModels, untilStage = '') {
         if (typeof(workflow) === 'string') {
             workflow = workflows[workflow];
         }
 
         let stageName = '';
         let workflowModel = {...workflowInput};
-        let stageInputs = {};
         let stageRoadmap = [];
         while (true) {
             const {nextStage: stage, nextStageWorkflow: stageWorkflow} = getNextStage(workflow, stageName, workflowModel);
-            if (!stage) {
+            if (!stage || stage.name == untilStage) {
                 // all stages of workflow are complete
                 break;
             }
@@ -101,9 +100,7 @@ ngapp.service('workflowService', function() {
             let stageRoadmapEntry = new StageRoadmapEntry(stage, stageWorkflow);
             stageRoadmap.push(stageRoadmapEntry);
 
-            const stageInput = getInputForStage(stage, workflowModel);
-
-            stageInputs[stageName] = angular.copy(stageInput);
+            const stageInput = formatInputForStage(stage, workflowModel);
 
             let stageModel = stageModels[stageName];
             if (!stageModel) {
@@ -124,9 +121,18 @@ ngapp.service('workflowService', function() {
 
         return {
             stageRoadmap,
-            stageInputs,
             workflowModel
         };
+    };
+
+    this.getInputForStage = function(workflow, workflowInput, stageModels, stageName) {
+        if (!workflow || !workflow.stages) {
+            return;
+        }
+
+        let {workflowModel} = this.processWorkflow(workflow, workflowInput, stageModels, stageName);
+        let stage = workflow.stages.find(({name}) => name === stageName);
+        return formatInputForStage(stage, workflowModel);
     };
 
     this.addModule = function({name, ...module}) {
