@@ -9,11 +9,13 @@
   "license": "MIT",
   "scripts": {
     "build": "gulp build",
-    "release": "gulp release"
+    "release": "gulp release",
+    "setup": "gulp setup"
   },
   "dependencies": {},
   "devDependencies": {
     "del": "^5.1.0",
+    "fs-jetpack": "^2.2.3",
     "gulp": "^4.0.2",
     "gulp-include": "^2.3.1",
     "gulp-rename": "^1.2.2",

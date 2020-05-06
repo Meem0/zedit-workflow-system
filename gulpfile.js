@@ -1,4 +1,6 @@
 const fs = require('fs');
+const jetpack = require('fs-jetpack');
+const readline = require('readline');
 const del = require('del');
 const gulp = require('gulp');
 const include = require('gulp-include');
@@ -50,5 +52,49 @@ function release() {
         .pipe(gulp.dest('.'));
 }
 
+function setup(cb) {
+    let validatePath = function(path, cb) {
+        if (!jetpack.exists(path)) {
+            cb(new Error('Could not find path ' + path));
+            return false;
+        }
+        return true;
+    }
+
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    
+    rl.question('Enter zedit dev folder (e.g. "C:/Projects/zedit", "../zedit"): ', function(zeditDir) {
+        rl.close();
+
+        let zeditModulesDir = jetpack.cwd(zeditDir, 'modules');
+        let zeditGeneralDir = jetpack.cwd(zeditDir, 'src\\stylesheets\\general');
+        let zeditThemesDir = jetpack.cwd(zeditDir, 'src\\stylesheets\\themes');
+    
+        if (validatePath(zeditModulesDir.cwd(), cb)) {
+            let zeditWorkflowModuleDir = zeditModulesDir.cwd('workflowSystem');
+            let workflowDistDir = jetpack.cwd('dist');
+            let workflowLibDir = jetpack.cwd('stylesheets\\lib');
+            let workflowThemesDir = jetpack.cwd('stylesheets\\themes');
+
+            jetpack.remove(zeditWorkflowModuleDir.cwd());
+            jetpack.remove(workflowLibDir.cwd());
+            jetpack.remove(workflowThemesDir.cwd());
+        
+            fs.symlinkSync(workflowDistDir.cwd(), zeditWorkflowModuleDir.cwd(), 'dir');
+            console.log(`Created symlink ${zeditWorkflowModuleDir.cwd()} -> ${workflowDistDir.cwd()}`);
+            fs.symlinkSync(zeditGeneralDir.cwd(), workflowLibDir.cwd(), 'dir');
+            console.log(`Created symlink ${workflowLibDir.cwd()} -> ${zeditGeneralDir.cwd()}`);
+            fs.symlinkSync(zeditThemesDir.cwd(), workflowThemesDir.cwd(), 'dir');
+            console.log(`Created symlink ${workflowThemesDir.cwd()} -> ${zeditThemesDir.cwd()}`);
+
+            cb();
+        }
+    });
+}
+
 exports.release = release;
 exports.build = gulp.series(clean, build);
+exports.setup = setup;
